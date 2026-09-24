@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Budget Tracker | AI Category Sensor & Financial Co-Pilot</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+</head>
+<body>
+
+  <!-- Top App Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <div class="brand-icon">🎓</div>
+        <div class="brand-text">
+          <h1>Student Budget Tracker</h1>
+          <span class="brand-tag">AI SMS Transaction & Category Sensor</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="ai-status-indicator" title="AI Category Sensor is actively listening to input & SMS feeds">
+          <span class="pulse-dot"></span>
+          <span>AI Category Sensor Active</span>
+        </div>
+        <button id="openNotificationBtn" class="gateway-status-pill notif-status-pill" title="Android Notification Listener: Intercepts Google Pay, PhonePe, Paytm, CRED & Bank push alerts">
+          <span class="pulse-dot" style="background: #38bdf8;"></span>
+          <span id="notifStatusText">📱 Android Listener</span>
+        </button>
+        <button id="openGatewayBtn" class="gateway-status-pill" title="FinArt & SMS Gateway Hub: Click to view Webhook URLs & Live Feed">
+          <span class="pulse-dot" style="background: #10b981;"></span>
+          <span id="gatewayStatusText">SMS Gateway Live</span>
+        </button>
+        <button id="openGeminiBotBtn" class="gateway-status-pill gemini-header-pill" title="Jump to Gemini 2.5 Budget & Savings Coach">
+          <span>✨ Gemini 2.5</span>
+        </button>
+        <button id="openShareModalBtn" class="gateway-status-pill" title="Direct Shareable Links (Public Internet, Local Wi-Fi & QR)">
+          <span>🔗 Share Links</span>
+        </button>
+        <button id="openProfileBtn" class="gateway-status-pill profile-status-pill" style="border-color: #818cf8; color: #818cf8; background: rgba(99, 102, 241, 0.08);" title="Multiple Time Login: Switch Student Account or Copy Direct Auto-Login Link">
+          <span>👤 </span><span id="headerProfileName">Student</span>
+        </button>
+        <button id="themeToggleBtn" class="icon-btn" title="Toggle Light/Dark Theme">☀️</button>
+        <button id="openSettingsBtn" class="icon-btn" title="Settings & Gemini API Key">⚙️</button>
+        <button id="openAddModalBtn" class="btn-primary">+ Add Transaction</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Real-Time Incoming SMS Toast Container -->
+  <div id="gatewayToastContainer" class="gateway-toast-container"></div>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- Top Financial Metrics Summary -->
+    <section class="metrics-grid">
+      <div class="metric-card highlight">
+        <div class="metric-header">
+          <span class="metric-title">Current Account Balance</span>
+          <span class="metric-icon">💳</span>
+        </div>
+        <div id="totalBalanceVal" class="metric-value">₹0.00</div>
+        <div class="metric-subtitle">Synced with bank SMS / auto-tracked</div>
+        <span class="metric-tag safe">Live Active Balance</span>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Monthly Allowance / Inflow</span>
+          <span class="metric-icon">💰</span>
+        </div>
+        <div id="monthlyIncomeVal" class="metric-value">₹0.00</div>
+        <div class="metric-subtitle">Parent allowance & campus stipends</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Total Spent This Month</span>
+          <span class="metric-icon">🛒</span>
+        </div>
+        <div id="totalSpentVal" class="metric-value text-debit">₹0.00</div>
+        <div class="metric-subtitle">Tracked across all categories</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Safe Daily Spending Limit</span>
+          <span class="metric-icon">🎯</span>
+        </div>
+        <div id="dailySafeVal" class="metric-value">₹0/day</div>
+        <div class="metric-subtitle" id="daysLeftTag">Calculating...</div>
+      </div>
+    </section>
+
+    <!-- Real-Time AI Transaction Reaction Banner (Populated dynamically) -->
+    <div id="aiReactionCard" class="ai-reaction-banner hidden"></div>
+
+    <!-- Top Section: AI SMS & Category Sensor Suite + Playground -->
+    <div class="sensor-section-group" style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <!-- 1. AI SMS & Category Sensor Suite -->
+        <section class="card-section">
+          <div class="section-header">
+            <div class="section-title-group">
+              <span class="section-title-icon">🤖</span>
+              <div>
+                <h2>AI Transaction & Category Sensor</h2>
+                <p style="font-size: 0.78rem; color: var(--text-secondary);">Senses transactions from SMS alerts or payment screenshots (PhonePe, GPay, Paytm)</p>
+              </div>
+            </div>
+            <span class="section-badge">Real-Time Sensing</span>
+          </div>
+
+          <!-- Sensor Input Mode Navigation Tabs -->
+          <div class="sensor-nav-tabs">
+            <button type="button" id="tabModeSms" class="sensor-tab-btn active">
+              <span>💬</span> Bank / UPI SMS
+            </button>
+            <button type="button" id="tabModeScreenshot" class="sensor-tab-btn">
+              <span>📸</span> Payment Screenshot / Receipt (PhonePe / GPay)
+            </button>
+          </div>
+
+          <div class="sensor-container">
+            <!-- TAB 1: SMS Sensor Content -->
+            <div id="smsSensorTabContent">
+              <div class="sensor-input-wrapper">
+                <textarea 
+                  id="smsSensorInput" 
+                  class="sensor-textarea" 
+                  placeholder="Paste any bank or UPI SMS here (e.g. 'INR 380 debited at Swiggy via UPI... Avl Bal: INR 8,450'). AI detects amount, merchant, and senses the category instantly!"></textarea>
+                <div class="sensor-input-footer">
+                  <span class="sensor-status-hint">
+                    <span class="pulse-dot"></span>
+                    <span>AI senses categories automatically as you paste or type</span>
+                  </span>
+                  <button id="clearSmsBtn" type="button" class="btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.76rem;">Clear</button>
+                </div>
+              </div>
+
+              <!-- Quick Student Simulation Presets -->
+              <div class="preset-section" style="margin-top: 0.75rem;">
+                <span class="preset-label">Test with Realistic Student Scenarios (Click to test):</span>
+                <div id="smsPresetPills" class="preset-pills-scroll">
+                  <!-- Injected by JavaScript -->
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: Screenshot Scanner Content -->
+            <div id="screenshotSensorTabContent" class="hidden">
+              <input type="file" id="screenshotFileInput" accept="image/*" class="hidden" />
+
+              <!-- Drag & Drop Area -->
+              <div id="screenshotDropzone" class="screenshot-dropzone">
+                <div class="dropzone-icon">📸</div>
+                <div class="dropzone-title">Upload or Paste Payment Screenshot</div>
+                <div class="dropzone-subtitle">
+                  Drag & drop PhonePe, Google Pay, Paytm, or bank screenshots here, or press <span class="kbd-shortcut">Ctrl + V</span> anywhere on this page!
+                </div>
+                <button type="button" id="browseScreenshotBtn" class="btn-secondary" style="font-size: 0.8rem; margin-top: 0.3rem;">
+                  📁 Browse Image File
+                </button>
+              </div>
+
+              <!-- 1-Click Realistic Screenshot Presets -->
+              <div class="preset-section" style="margin-top: 0.75rem;">
+                <span class="preset-label">1-Click Test Screenshots (Click to simulate):</span>
+                <div class="preset-pills-scroll">
+                  <button type="button" class="preset-pill ss-preset-btn" data-type="phonepe">
+                    🟣 PhonePe Swiggy Receipt (₹380)
+                  </button>
+                  <button type="button" class="preset-pill ss-preset-btn" data-type="gpay">
+                    🟢 Google Pay Canteen (₹75)
+                  </button>
+                  <button type="button" class="preset-pill ss-preset-btn" data-type="paytm">
+                    🔵 Paytm Bookstore Receipt (₹1,450)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Active Scanner Box (Visible during / after scanning) -->
+              <div id="scannerActiveBox" class="scanner-active-box hidden" style="margin-top: 0.75rem;">
+                <div class="scanner-thumb-wrapper">
+                  <img id="scannerThumbImg" class="scanner-thumb-img" src="" alt="Receipt preview" />
+                  <div id="laserScanBar" class="laser-scan-bar"></div>
+                </div>
+                <div class="scanner-info-col">
+                  <div class="scanner-status-text">
+                    <span class="pulse-dot"></span>
+                    <span id="scannerStatusMsg">Analyzing receipt image...</span>
+                  </div>
+                  <div class="scanner-progress-bar">
+                    <div id="scannerProgressFill" class="scanner-progress-fill" style="width: 50%;"></div>
+                  </div>
+                  <span style="font-size: 0.74rem; color: var(--text-muted);">
+                    AI OCR Vision actively detecting merchant, UTR, and category
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sensed Transaction Preview Box (Appears when SMS or Screenshot is parsed) -->
+            <div id="sensedResultCard" class="sensed-result-card hidden">
+              <div class="sensed-result-header">
+                <span id="sensedTypeTag" class="status-pill pill-debit">Outflow / Debit Sensed</span>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span id="sensedAppBadge" class="app-badge-pill app-badge-generic hidden">📱 PhonePe</span>
+                  <span id="sensedConfidencePct" class="ai-confidence-badge">98% AI Confidence</span>
+                </div>
+              </div>
+
+              <div class="sensed-details-grid">
+                <div class="sensed-field">
+                  <label>Amount</label>
+                  <div id="sensedAmountVal" class="val text-debit">₹0.00</div>
+                </div>
+                <div class="sensed-field">
+                  <label>Merchant / Payee</label>
+                  <div id="sensedMerchantVal" class="val">Unknown</div>
+                </div>
+                <div class="sensed-field hidden" id="sensedBalanceRow">
+                  <label>Account Balance</label>
+                  <div id="sensedBalanceVal" class="val text-credit">₹0.00</div>
+                </div>
+              </div>
+
+              <!-- Dedicated AI Category Sensor Box -->
+              <div class="category-sensor-box">
+                <div class="sensor-box-title">
+                  <span>🧠 AI Category Sensor Output</span>
+                  <span style="font-size: 0.7rem; color: var(--text-muted);">Adjust if needed</span>
+                </div>
+
+                <div id="sensedCategoryBadge" class="category-active-pill">
+                  <!-- Injected by JS -->
+                </div>
+
+                <div class="sensor-reason-row">
+                  <span id="sensedReasonText">Sensed via keyword & merchant heuristics</span>
+                </div>
+
+                <div class="alt-categories-row">
+                  <span>Quick switch category:</span>
+                  <div id="sensedAltCategories" style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                    <!-- Alternative categories injected here -->
+                  </div>
+                </div>
+              </div>
+
+              <div class="sensed-actions">
+                <button id="confirmSensedTxnBtn" type="button" class="btn-primary" style="flex: 1;">
+                  ✅ Confirm & Log to Budget Dashboard
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Dedicated AI Category Sensor Playground -->
+        <div class="sandbox-card">
+          <div class="sandbox-header">
+            <h4><span>⚡</span> Live Category Sensor Sandbox</h4>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Test any merchant or item</span>
+          </div>
+          <div class="sandbox-input-row">
+            <input 
+              id="catTesterInput" 
+              type="text" 
+              placeholder="Try typing: 'Coursera Python course', 'Zomato Biryani', 'Hostel Electricity', 'Uber ride'..." />
+            <button id="catTesterBtn" class="btn-secondary" style="font-size: 0.82rem;">Sense Category</button>
+          </div>
+          <div id="catTesterResult">
+            <span style="font-size: 0.74rem; color: var(--text-muted);">Type any item to watch the AI Category Sensor classify it.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FULL-WIDTH SECTION: 2. Transaction History & Ledger -->
+      <section class="card-section full-width-ledger-section">
+        <div class="section-header">
+          <div class="section-title-group">
+            <span class="section-title-icon">📋</span>
+            <div>
+              <h2>Transaction Ledger</h2>
+              <span id="ledgerHeaderAmountSummary" class="ledger-header-sub">
+                Total Ledger: <strong id="ledgerTotalNetAmt" class="text-debit">₹0.00</strong>
+              </span>
+            </div>
+          </div>
+          <div class="ledger-header-actions-group">
+            <div class="ledger-header-pills">
+              <span id="ledgerTotalDebitsBadge" class="ledger-pill pill-debit">Spent: -₹0.00</span>
+              <span id="ledgerTotalCreditsBadge" class="ledger-pill pill-credit">Inflow: +₹0.00</span>
+              <span class="section-badge">Live Record</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ledger-controls">
+          <input 
+            id="txnSearchInput" 
+            type="text" 
+            class="filter-input" 
+            placeholder="Search by merchant, amount, or keyword..." 
+            style="min-width: 240px;" />
+
+          <div class="ledger-filters">
+            <select id="txnTypeFilter" class="filter-select">
+              <option value="all">All Types</option>
+              <option value="debit">Debits (Expenses)</option>
+              <option value="credit">Credits (Income)</option>
+            </select>
+
+            <select id="txnCatFilter" class="filter-select">
+              <option value="all">All Categories</option>
+              <option value="food">🍔 Food & Dining</option>
+              <option value="academics">📚 Academics & Books</option>
+              <option value="housing">🏠 Housing & Living</option>
+              <option value="travel">🚌 Travel & Commute</option>
+              <option value="entertainment">🎬 Entertainment & Theater</option>
+              <option value="shopping">🛍️ Shopping</option>
+              <option value="health">💊 Health & Wellness</option>
+              <option value="income">💰 Income & Allowance</option>
+              <option value="utilities">⚡ Recharge & Bills</option>
+              <option value="misc">📦 Miscellaneous</option>
+            </select>
+
+            <div id="ledgerFilterStats" class="ledger-filter-stats">
+              <!-- Filtered count and sum -->
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive" id="ledgerTableWrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Merchant / Payee</th>
+                <th>Category</th>
+                <th>Amount (₹)</th>
+                <th>Date & Time</th>
+                <th>Mode</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="txnTableBody">
+              <!-- Populated by JavaScript -->
+            </tbody>
+            <tfoot id="txnTableFoot">
+              <!-- Dynamic Totals & Summary Row -->
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- LOWER SECTION: Category Budgets, Analytics, AI Savings Coach & Gemini Coach Placed DOWN -->
+      <div class="lower-dashboard-grid">
+        <!-- Lower Left Column: Category Budgets & Spending Analytics -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Category Budgets Health Progress -->
+          <section class="card-section">
+            <div class="section-header">
+              <div class="section-title-group">
+                <span class="section-title-icon">📊</span>
+                <h2>Category Budgets & Limits</h2>
+              </div>
+              <span class="section-badge">Monthly Limits</span>
+            </div>
+            <div id="categoryBudgetsList" class="category-budgets-grid">
+              <!-- Populated by JavaScript -->
+            </div>
+          </section>
+
+          <!-- Analytics: Donut & Weekly Bars -->
+          <div class="analytics-grid">
+            <div class="chart-card">
+              <span class="chart-title">Category Spending Distribution</span>
+              <div id="categoryDonutContainer" style="min-height: 220px;">
+                <!-- Donut SVG rendered by charts.js -->
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <span class="chart-title">7-Day Spending Velocity</span>
+              <div id="weeklySpendBarContainer" style="min-height: 220px;">
+                <!-- Bar Chart rendered by charts.js -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lower Right Column: Gemini AI Coach & Savings Advisor -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+        <!-- AI Savings Coach & Student 50/30/20 Rule -->
+        <section class="card-section">
+          <div class="section-header">
+            <div class="section-title-group">
+              <span class="section-title-icon">💡</span>
+              <h2>AI Savings Coach & Tips</h2>
+            </div>
+            <span class="section-badge">Student Tailored</span>
+          </div>
+
+          <!-- Student 50/30/20 Rule -->
+          <div style="margin-bottom: 0.5rem;">
+            <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+              Student 50/30/20 Rule Analysis:
+            </span>
+            <div id="rule503020Container" style="margin-top: 0.4rem;">
+              <!-- Injected by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Savings Suggestions -->
+          <div id="savingsSuggestionsList" class="savings-suggestions-list">
+            <!-- Populated by JavaScript -->
+          </div>
+
+          <!-- Savings Goals -->
+          <div style="margin-top: 0.75rem;">
+            <div class="section-header" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+                🎯 Your Student Savings Goals:
+              </span>
+              <button id="btnAddGoalQuick" type="button" class="btn-mini-add" title="Add a new savings goal">
+                + Add Goal
+              </button>
+            </div>
+            <div id="savingsGoalsList" class="savings-goals-list">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Reminders & Bill Alerts ("remainder") -->
+          <div style="margin-top: 1rem;">
+            <div class="section-header" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+                🔔 Reminders & Bill Alerts:
+              </span>
+              <button id="btnAddReminderQuick" type="button" class="btn-mini-add" title="Add a new bill reminder">
+                + Add Reminder
+              </button>
+            </div>
+            <div id="remindersList" class="reminders-list">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Interactive Gemini 2.5 Budget & Savings Coach -->
+        <section id="geminiBotSection" class="card-section gemini-bot-card">
+          <div class="section-header">
+            <div class="section-title-group">
+              <span class="section-title-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(14, 165, 233, 0.2)); border-radius: var(--radius-sm); padding: 0.2rem 0.35rem;">✨</span>
+              <div>
+                <h2 style="display: flex; align-items: center; gap: 0.4rem;">
+                  Gemini 2.5 AI Coach
+                  <span class="gemini-version-tag">Gemini 2.5</span>
+                </h2>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">Savings Suggestions, Instant Q&A, and Goals & Reminders Powered by Gemini 2.5</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
+              <button id="btnGetSavingSuggestions" type="button" class="btn-savings-suggest" title="Generate comprehensive personalized savings recommendations based on your actual spending">
+                💡 Get Saving Suggestions
+              </button>
+              <button id="openGeminiKeyModalBtn" type="button" class="btn-api-key-badge" title="Configure Gemini API Key">
+                <span id="geminiModeIndicator">✨ Gemini 2.5</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="chat-container">
+            <div id="aiChatMessages" class="chat-messages">
+              <div class="chat-bubble assistant">
+                <div class="chat-sender">✨ Gemini 2.5</div>
+                <div class="chat-content">
+                  Hey there! 👋 I am your <strong>Gemini 2.5 Student Financial & Budget Coach</strong>. I provide personalized <strong>savings suggestions</strong>, answer budget questions, and dynamically <strong>add, set, or remove your savings goals and bill reminders ("remainders")</strong>!
+                  <br><br>
+                  Try asking me:
+                  <br>• <em>"Give me personalized savings suggestions"</em>
+                  <br>• <em>"Add goal Tech Fund ₹15,000"</em>
+                  <br>• <em>"Add reminder Hostel Rent ₹5,500 due 1st"</em>
+                  <br>• <em>"Can I afford dinner out tonight?"</em>
+                  <br>• <em>"Mark reminder Hostel Rent done"</em>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick question prompt pills -->
+            <div class="chat-prompt-pills">
+              <button type="button" class="ai-prompt-pill" data-query="Give me personalized savings suggestions">💡 Savings suggestions</button>
+              <button type="button" class="ai-prompt-pill" data-query="Add goal Tech Fund ₹15000">🎯 Add Goal: Tech Fund ₹15k</button>
+              <button type="button" class="ai-prompt-pill" data-query="Add reminder Hostel Rent 5500 due 1st">🔔 Remind: Rent ₹5,500 on 1st</button>
+              <button type="button" class="ai-prompt-pill" data-query="Show my reminders">📋 Show Reminders</button>
+              <button type="button" class="ai-prompt-pill" data-query="Can I afford dinner out tonight?">🎯 Can I afford dinner?</button>
+              <button type="button" class="ai-prompt-pill" data-query="How much did I spend on food this month?">🍔 Food spend</button>
+              <button type="button" class="ai-prompt-pill" data-query="What is my 50/30/20 budget breakdown?">⚖️ 50/30/20 Rule</button>
+              <button type="button" class="ai-prompt-pill" data-query="What can you do?">❓ Bot Help & Commands</button>
+            </div>
+
+            <div class="chat-input-row">
+              <input 
+                id="aiChatInput" 
+                type="text" 
+                class="chat-input" 
+                placeholder="Ask Gemini 2.5 for savings suggestions, or type 'Add goal ...', 'Add reminder ...', 'Can I afford ...'" />
+              <button id="aiChatSendBtn" type="button" class="btn-primary" style="padding: 0.45rem 1rem;">
+                Ask Gemini 2.5
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal: Manual Add Transaction -->
+  <div id="addTxnModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>+ Log Manual Transaction</h3>
+        <button id="closeAddModalBtn" class="icon-btn" style="width:30px; height:30px;">✕</button>
+      </div>
+      <form id="addTxnForm" class="modal-form">
+        <div class="form-group">
+          <label>Merchant / Payee Name</label>
+          <input type="text" name="merchantName" class="form-input" placeholder="e.g. Campus Cafeteria, Stationary Shop" required />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" name="txnAmount" step="0.01" class="form-input" placeholder="0.00" required />
+          </div>
+          <div class="form-group">
+            <label>Transaction Type</label>
+            <select name="txnType" class="form-input">
+              <option value="debit">Outflow / Expense</option>
+              <option value="credit">Inflow / Allowance</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label>Category</label>
+            <select name="txnCategory" class="form-input">
+              <option value="food">🍔 Food & Dining</option>
+              <option value="academics">📚 Academics & Books</option>
+              <option value="housing">🏠 Housing & Living</option>
+              <option value="travel">🚌 Travel & Commute</option>
+              <option value="entertainment">🎬 Entertainment & Theater</option>
+              <option value="shopping">🛍️ Shopping</option>
+              <option value="health">💊 Health & Wellness</option>
+              <option value="income">💰 Income & Allowance</option>
+              <option value="utilities">⚡ Recharge & Bills</option>
+              <option value="misc">📦 Miscellaneous</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select name="txnMode" class="form-input">
+              <option value="UPI">UPI / GPay / PhonePe</option>
+              <option value="Cash">Cash</option>
+              <option value="Card">Debit / Credit Card</option>
+              <option value="NetBanking">NetBanking</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('addTxnModal').classList.add('hidden')">Cancel</button>
+          <button type="submit" class="btn-primary">Add Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Settings & Optional Gemini API Key -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ Budget & AI Settings</h3>
+        <button id="closeSettingsBtn" class="icon-btn" style="width:30px; height:30px;">✕</button>
+      </div>
+      <form id="settingsForm" class="modal-form">
+        <div class="form-group">
+          <label>Monthly Student Allowance Target (₹)</label>
+          <input type="number" id="settingsAllowanceInput" class="form-input" placeholder="18000" />
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Used for monthly budget pacing and 50/30/20 recommendations</span>
+        </div>
+
+        <div class="form-group">
+          <label>Starting Bank Balance (₹)</label>
+          <input type="number" id="settingsBalanceInput" class="form-input" placeholder="4500" />
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Base starting balance before recorded transactions</span>
+        </div>
+
+        <div class="form-group">
+          <label>Optional: Google Gemini API Key (Gemini 2.5 Flash)</label>
+          <input type="password" id="settingsApiKeyInput" class="form-input" placeholder="AIzaSy... / Google Gemini Key" />
+          <span style="font-size: 0.72rem; color: var(--text-muted);">
+            Leave blank to use the high-speed Built-in Gemini Engine (100% private & instant). Or paste your Gemini API Key to enable live Gemini 2.5 Flash cloud generation!
+          </span>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" id="resetDataBtn" class="btn-secondary" style="color: var(--color-danger); border-color: rgba(239, 68, 68, 0.4);">
+            Reset Sample Data
+          </button>
+          <div class="form-actions" style="margin: 0;">
+            <button type="button" class="btn-secondary" onclick="document.getElementById('settingsModal').classList.add('hidden')">Cancel</button>
+            <button type="submit" class="btn-primary">Save Settings</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: FinArt & SMS Gateway Hub -->
+  <div id="gatewayModal" class="modal-overlay hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.4rem;">📱</span>
+          <div>
+            <h3>FinArt & SMS Gateway Hub</h3>
+            <span style="font-size: 0.76rem; color: var(--text-secondary);">Real-time bank SMS sync & API webhook endpoints</span>
+          </div>
+        </div>
+        <button id="closeGatewayBtn" class="icon-btn" style="width:30px; height:30px;">✕</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Live Webhook Endpoints -->
+        <div class="gateway-config-section">
+          <h4 class="config-section-title">📡 Live SMS Webhook Endpoints</h4>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.65rem;">
+            Enter either URL into your Android SMS Forwarder (Tasker, MacroDroid, SMS Gateway app) or FinArt webhook to push live transaction SMS messages straight to this dashboard:
+          </p>
+
+          <div class="webhook-url-box">
+            <div class="webhook-label-row">
+              <span class="url-badge">Local Webhook</span>
+              <span class="url-desc">For local scripts, curl, or desktop extensions</span>
+            </div>
+            <div class="url-input-group">
+              <input type="text" id="gwLocalUrl" readonly class="form-input code-font" value="http://localhost:3000/api/sms/webhook" />
+              <button type="button" class="btn-secondary copy-btn" data-target="gwLocalUrl">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="webhook-url-box" style="margin-top: 0.65rem;">
+            <div class="webhook-label-row">
+              <span class="url-badge lan">Phone / Wi-Fi Webhook</span>
+              <span class="url-desc">Enter this URL in your mobile phone app while connected to the same Wi-Fi</span>
+            </div>
+            <div class="url-input-group">
+              <input type="text" id="gwLanUrl" readonly class="form-input code-font" value="Detecting LAN IP..." />
+              <button type="button" class="btn-secondary copy-btn" data-target="gwLanUrl">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuration Settings -->
+        <div class="gateway-config-section">
+          <h4 class="config-section-title">⚙️ Gateway & FinArt API Configuration</h4>
+          <form id="gatewaySettingsForm">
+            <div class="settings-grid-2col">
+              <div class="form-group">
+                <label>FinArt API Key / Bearer Secret (Optional)</label>
+                <input type="password" id="gwApiKeyInput" class="form-input" placeholder="finart_sec_... or leave blank" />
+                <span style="font-size: 0.72rem; color: var(--text-muted);">Authenticates incoming webhooks if your forwarder sends a bearer token</span>
+              </div>
+              <div class="form-group">
+                <label>Remote FinArt API Endpoint (Optional)</label>
+                <input type="text" id="gwRemoteEndpointInput" class="form-input" placeholder="https://api.finart.app/v1/parse" />
+                <span style="font-size: 0.72rem; color: var(--text-muted);">Leave blank to use the built-in 100% offline AI sensor</span>
+              </div>
+            </div>
+
+            <div class="gateway-toggles-row">
+              <label class="toggle-control">
+                <input type="checkbox" id="gwAutoSyncToggle" checked />
+                <span class="toggle-label">Live Gateway Polling (Fetch incoming SMS every 3s)</span>
+              </label>
+
+              <label class="toggle-control">
+                <input type="checkbox" id="gwAutoConfirmToggle" checked />
+                <span class="toggle-label">Auto-Log Verified SMS (Skip manual confirmation)</span>
+              </label>
+            </div>
+
+            <div style="display: flex; gap: 0.6rem; margin-top: 1rem; justify-content: flex-end; align-items: center;">
+              <button type="button" id="gwSimulateBtn" class="btn-secondary" style="border-color: var(--color-primary); color: var(--color-primary);">
+                ⚡ Send Test Bank SMS
+              </button>
+              <button type="submit" class="btn-primary">
+                Save Gateway Settings
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Live Activity Feed -->
+        <div class="gateway-config-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h4 class="config-section-title" style="margin: 0;">📜 Gateway Message Feed & Activity Log</h4>
+            <button type="button" id="gwClearLogBtn" class="btn-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem;">Clear Feed</button>
+          </div>
+          <div id="gwActivityLogContainer" class="gateway-log-container">
+            <div class="gateway-log-empty">Waiting for incoming SMS from gateway... Click 'Send Test Bank SMS' to test!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Android Notification Listener Hub -->
+  <div id="notificationModal" class="modal-overlay hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.4rem;">🔔</span>
+          <div>
+            <h3>Android Notification Listener API Hub</h3>
+            <span style="font-size: 0.76rem; color: var(--text-secondary);">Real-time payment notification forwarder & UPI interception</span>
+          </div>
+        </div>
+        <button id="closeNotificationBtn" class="icon-btn" style="width:30px; height:30px;">✕</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Hub Navigation Tabs -->
+        <div class="notif-tab-bar">
+          <button type="button" class="notif-tab-btn active" data-tab="notifTabSetup">📡 Webhook & Setup</button>
+          <button type="button" class="notif-tab-btn" data-tab="notifTabSimulator">⚡ Test Simulator</button>
+          <button type="button" class="notif-tab-btn" data-tab="notifTabFeed">📜 Live Activity Log</button>
+          <button type="button" class="notif-tab-btn" data-tab="notifTabOptions">⚙️ Settings</button>
+        </div>
+
+        <!-- Tab 1: Setup & Webhook URLs -->
+        <div id="notifTabSetup" class="notif-tab-content">
+          <div class="gateway-config-section">
+            <h4 class="config-section-title">📡 Live Notification Webhook Endpoints</h4>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.65rem;">
+              Forward incoming payment notifications (Google Pay, PhonePe, Paytm, CRED, Bank apps) to this webhook over local Wi-Fi:
+            </p>
+
+            <div class="webhook-url-box">
+              <div class="webhook-label-row">
+                <span class="url-badge lan" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">Mobile Wi-Fi Webhook</span>
+                <span class="url-desc">Enter this URL in MacroDroid / Tasker while connected to the same Wi-Fi</span>
+              </div>
+              <div class="url-input-group">
+                <input type="text" id="notifLanUrl" readonly class="form-input code-font" value="Detecting LAN IP..." />
+                <button type="button" class="btn-secondary copy-btn" data-target="notifLanUrl">📋 Copy</button>
+              </div>
+            </div>
+
+            <div class="webhook-url-box" style="margin-top: 0.65rem;">
+              <div class="webhook-label-row">
+                <span class="url-badge">Local Webhook</span>
+                <span class="url-desc">For testing via curl, Postman, or desktop scripts</span>
+              </div>
+              <div class="url-input-group">
+                <input type="text" id="notifLocalUrl" readonly class="form-input code-font" value="http://localhost:3000/api/notifications/webhook" />
+                <button type="button" class="btn-secondary copy-btn" data-target="notifLocalUrl">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gateway-config-section">
+            <h4 class="config-section-title">📲 3-Step Setup with MacroDroid (Free on Android Play Store)</h4>
+            <div class="setup-steps-list">
+              <div class="setup-step-item">
+                <span class="step-num">1</span>
+                <div>
+                  <strong>Install MacroDroid & Add Trigger</strong>
+                  <p>Open MacroDroid > Add Macro > Trigger: <strong>Notification Received</strong> > Select apps: <em>Google Pay, PhonePe, Paytm, CRED, HDFC/SBI/ICICI</em>.</p>
+                </div>
+              </div>
+              <div class="setup-step-item">
+                <span class="step-num">2</span>
+                <div>
+                  <strong>Add Action: HTTP Request</strong>
+                  <p>Action: <strong>HTTP Request</strong> > Method: <code>POST</code> > URL: <code>(Paste the Mobile Wi-Fi Webhook above)</code> > Content-Type: <code>application/json</code>.</p>
+                </div>
+              </div>
+              <div class="setup-step-item">
+                <span class="step-num">3</span>
+                <div>
+                  <strong>Set Request Body JSON</strong>
+                  <div class="code-snippet-box">
+                    <pre><code>{
+  "packageName": "[notification_package_name]",
+  "appName": "[notification_app_name]",
+  "title": "[notification_title]",
+  "text": "[notification_text]",
+  "postTime": [system_time_ms]
+}</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Test Simulator -->
+        <div id="notifTabSimulator" class="notif-tab-content hidden">
+          <div class="gateway-config-section">
+            <h4 class="config-section-title">⚡ 1-Click Android Payment Simulators</h4>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+              Click any sample below to simulate a real payment push notification entering the Android Listener pipeline:
+            </p>
+
+            <div class="simulator-grid">
+              <button type="button" class="sim-card-btn" data-sim-index="0">
+                <span class="sim-icon">🍔</span>
+                <div class="sim-info">
+                  <strong>Google Pay: Canteen</strong>
+                  <span>Paid ₹180 to Campus Canteen</span>
+                </div>
+                <span class="sim-badge">Food</span>
+              </button>
+
+              <button type="button" class="sim-card-btn" data-sim-index="1">
+                <span class="sim-icon">🎬</span>
+                <div class="sim-info">
+                  <strong>PhonePe: PVR Cinema</strong>
+                  <span>Paid ₹450 to PVR Cinema for Movie</span>
+                </div>
+                <span class="sim-badge" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">Theater</span>
+              </button>
+
+              <button type="button" class="sim-card-btn" data-sim-index="2">
+                <span class="sim-icon">📚</span>
+                <div class="sim-info">
+                  <strong>Paytm: University Books</strong>
+                  <span>Paid ₹1,200 to University Book Store</span>
+                </div>
+                <span class="sim-badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">Academics</span>
+              </button>
+
+              <button type="button" class="sim-card-btn" data-sim-index="3">
+                <span class="sim-icon">💰</span>
+                <div class="sim-info">
+                  <strong>CRED: Allowance Inflow</strong>
+                  <span>Received ₹3,000 from Dad (Allowance)</span>
+                </div>
+                <span class="sim-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Income</span>
+              </button>
+
+              <button type="button" class="sim-card-btn" data-sim-index="4">
+                <span class="sim-icon">☕</span>
+                <div class="sim-info">
+                  <strong>Google Pay: Chai Point</strong>
+                  <span>Paid ₹85 to Chai Point</span>
+                </div>
+                <span class="sim-badge" style="background: rgba(249, 115, 22, 0.15); color: #f97316;">Food</span>
+              </button>
+
+              <button type="button" class="sim-card-btn" data-sim-index="5">
+                <span class="sim-icon">🚌</span>
+                <div class="sim-info">
+                  <strong>BHIM UPI: Uber Ride</strong>
+                  <span>Paid ₹240 to Uber India for Campus</span>
+                </div>
+                <span class="sim-badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">Travel</span>
+              </button>
+            </div>
+
+            <!-- Custom Notification Simulator -->
+            <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+              <h5 style="font-size: 0.8rem; margin-bottom: 0.45rem;">Custom Push Notification Test:</h5>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="customNotifInput" class="form-input" placeholder="e.g. Paid ₹320 to Starbucks via Google Pay" />
+                <button type="button" id="btnSendCustomNotif" class="btn-primary" style="white-space: nowrap;">Inject Push</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Live Feed -->
+        <div id="notifTabFeed" class="notif-tab-content hidden">
+          <div class="gateway-config-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <h4 class="config-section-title" style="margin: 0;">📜 Intercepted Notification Feed</h4>
+              <button type="button" id="btnClearNotifFeed" class="btn-secondary" style="font-size: 0.72rem; padding: 0.2rem 0.55rem;">Clear Log</button>
+            </div>
+            <div id="notifActivityLogContainer" class="gateway-log-container">
+              <div class="gateway-log-empty">No notifications captured yet. Connect MacroDroid or click the Test Simulator!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Settings -->
+        <div id="notifTabOptions" class="notif-tab-content hidden">
+          <div class="gateway-config-section">
+            <h4 class="config-section-title">⚙️ Android Notification Handling</h4>
+            <div class="gateway-toggles-row">
+              <label class="toggle-control">
+                <input type="checkbox" id="notifAutoSyncToggle" checked />
+                <span class="toggle-label">Auto-Poll Webhook (Fetch incoming push notifications every 3s)</span>
+              </label>
+
+              <label class="toggle-control">
+                <input type="checkbox" id="notifAutoConfirmToggle" />
+                <span class="toggle-label">Auto-Log Recognized Payments (Directly record to ledger without prompt)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Modal: Direct Shareable Links -->
+  <div id="shareModal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.5rem;">🔗</span>
+          <div>
+            <h3>Direct Shareable Links</h3>
+            <span style="font-size: 0.76rem; color: var(--text-secondary);">Access from phone, mobile data, or local Wi-Fi</span>
+          </div>
+        </div>
+        <button id="closeShareModalBtn" class="icon-btn" style="width:30px; height:30px;">✕</button>
+      </div>
+
+      <div class="modal-body-scroll" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;">
+        <!-- Public Internet Link (Works Anywhere) -->
+        <div class="gateway-config-section" style="margin: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="font-size: 0.85rem; color: #38bdf8;">🌐 Public Internet Link (4G / 5G / Anywhere)</strong>
+            <button type="button" id="copyPublicLinkBtn" class="btn-secondary" style="font-size: 0.74rem; padding: 0.25rem 0.6rem;">📋 Copy</button>
+          </div>
+          <div class="url-input-group">
+            <input type="text" id="sharePublicUrlInput" readonly class="form-input code-font" value="https://subscribers-dominant-vegetable-hip.trycloudflare.com" />
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; display: block;">Anyone anywhere in the world can open this link on their phone or PC.</span>
+        </div>
+
+        <!-- Local Wi-Fi Link -->
+        <div class="gateway-config-section" style="margin: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="font-size: 0.85rem; color: #10b981;">📶 Same Wi-Fi Link (Fast & Direct)</strong>
+            <button type="button" id="copyLanLinkBtn" class="btn-secondary" style="font-size: 0.74rem; padding: 0.25rem 0.6rem;">📋 Copy</button>
+          </div>
+          <div class="url-input-group">
+            <input type="text" id="shareLanUrlInput" readonly class="form-input code-font" value="http://192.168.31.98:3000" />
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; display: block;">Works for any phone or device connected to your home Wi-Fi or mobile hotspot.</span>
+        </div>
+
+        <!-- Local PC Link -->
+        <div class="gateway-config-section" style="margin: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="font-size: 0.85rem; color: #a78bfa;">💻 Local PC Link (Direct Browser Access)</strong>
+            <button type="button" id="copyLocalLinkBtn" class="btn-secondary" style="font-size: 0.74rem; padding: 0.25rem 0.6rem;">📋 Copy</button>
+          </div>
+          <div class="url-input-group">
+            <input type="text" id="shareLocalUrlInput" readonly class="form-input code-font" value="http://localhost:3000" />
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; display: block;">Opens the web app locally on this computer.</span>
+        </div>
+
+        <!-- Phone Camera Scan QR -->
+        <div style="text-align: center; padding: 0.75rem 0; border-top: 1px solid var(--border-color);">
+          <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.6rem;">Or scan with your phone camera:</div>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https%3A%2F%2Fsubscribers-dominant-vegetable-hip.trycloudflare.com" alt="App QR Code" style="border-radius: 8px; border: 3px solid #fff; background: #fff; width: 130px; height: 130px; display: inline-block;" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Student Accounts & Multi-Login Links -->
+  <div id="profileModal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.5rem;">👤</span>
+          <div>
+            <h3>Student Accounts & Multiple-Time Login</h3>
+            <span style="font-size: 0.76rem; color: var(--text-secondary);">Switch profiles or copy direct login links that remember you</span>
+          </div>
+        </div>
+        <button id="closeProfileBtn" class="icon-btn" style="width:30px; height:30px;">✕</button>
+      </div>
+
+      <div class="modal-body-scroll" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;">
+        <!-- Active Account Badge -->
+        <div class="gateway-config-section" style="margin: 0; background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Logged In Account</span>
+              <h4 id="activeProfileHeading" style="margin: 0.15rem 0 0 0; font-size: 1.1rem; color: #818cf8;">Student (Active)</h4>
+            </div>
+            <span class="url-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Active Session</span>
+          </div>
+        </div>
+
+        <!-- 1-Click Multi-Login Direct Link (Public Internet) -->
+        <div class="gateway-config-section" style="margin: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="font-size: 0.85rem; color: #38bdf8;">🌐 Public Multi-Time Login Link (Anywhere / 4G / 5G)</strong>
+            <button type="button" id="copyMyLoginLinkBtn" class="btn-primary" style="font-size: 0.74rem; padding: 0.25rem 0.65rem;">📋 Copy Link</button>
+          </div>
+          <div class="url-input-group">
+            <input type="text" id="myLoginLinkInput" readonly class="form-input code-font" value="" />
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; display: block;">
+            Bookmark or click this link anytime. It automatically logs in to your account with your saved transactions and budgets!
+          </span>
+        </div>
+
+        <!-- 1-Click Multi-Login Direct Link (Local Wi-Fi) -->
+        <div class="gateway-config-section" style="margin: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <strong style="font-size: 0.85rem; color: #10b981;">📶 Same Wi-Fi Login Link (Fast & Direct)</strong>
+            <button type="button" id="copyMyLanLoginLinkBtn" class="btn-secondary" style="font-size: 0.74rem; padding: 0.25rem 0.65rem;">📋 Copy Link</button>
+          </div>
+          <div class="url-input-group">
+            <input type="text" id="myLanLoginLinkInput" readonly class="form-input code-font" value="" />
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; display: block;">
+            Works for any phone or tablet connected to your home Wi-Fi or mobile hotspot.
+          </span>
+        </div>
+
+        <!-- Switch or Create Account -->
+        <div class="gateway-config-section" style="margin: 0;">
+          <h4 class="config-section-title">👥 Switch or Add Student Profile</h4>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Multiple students or roommates can maintain their own separate budget and transactions on the same app.
+          </p>
+
+          <!-- Profile List -->
+          <div id="profileListContainer" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 180px; overflow-y: auto;">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Add Profile Form -->
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.85rem;">
+            <input type="text" id="newProfileNameInput" class="form-input" placeholder="e.g. Rahul, Hostel, or Canteen" />
+            <button type="button" id="addNewProfileBtn" class="btn-secondary" style="white-space: nowrap;">+ Add User</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/tesseract.min.js"></script>
+  <script src="js/sms-detector.js"></script>
+  <script src="js/finart-api.js"></script>
+  <script src="js/notification-listener.js"></script>
+  <script src="js/screenshot-analyzer.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ai-advisor.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
